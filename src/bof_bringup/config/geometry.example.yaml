@@ -1,0 +1,19 @@
+# Copy and fill measured dimensions before enabling --geometry / geometry_path.
+# These zero values deliberately prevent accidental use as real-world geometry.
+small: {width_m: 0.0, height_m: 0.0}
+large: {width_m: 0.0, height_m: 0.0}
+# Initial IMAGE-space ratio ranges to tune on your views; not competition dimensions.
+# Overlap is ambiguous and does not emit a valid 3D observation without a model hint.
+small_ratio_range: [1.0, 3.2]
+large_ratio_range: [2.8, 5.5]
+# auto: explicit model size when available, otherwise RPS-style ratio selection.
+# Also accepts small / large (explicit policy), model (require hint), ignore.
+label_policies:
+  0: auto
+  1: auto
+  2: auto
+  3: auto
+  4: auto
+  5: auto
+  6: auto
+  7: auto

@@ -1,0 +1,183 @@
+# 日常调参主入口。路径相对于本 YAML；CLI 显式参数优先。
+# 参考同济 sentry.yaml / yolo_name 的集中配置方式；数值不是别队硬件标定。
+schema_version: 1
+enemy_color: red
+
+# 切换模型只改这一行，或启动时 --yolo NAME；live 窗口按 y 循环切换。
+yolo_name: shenzhen_0526
+yolo_models:
+  shenzhen_0526:
+    backend: shenzhen_0526
+    model_path: ../../../models/shenzhen/shenzhen-0526.onnx
+    device: CPU
+    confidence: 0.7
+    nms: 0.3
+  shenzhen_0708:
+    backend: shenzhen_0708
+    model_path: ../../../models/shenzhen/shenzhen-0708.onnx
+    device: CPU
+    confidence: 0.7
+    nms: 0.3
+  tongji_yolov5:
+    backend: tongji_yolov5
+    model_path: ../../../models/tongji_yolov5/yolov5.xml
+    device: CPU
+    confidence: 0.7
+    nms: 0.3
+  tongji_yolov8:                 # 416 输入，网络只分颜色，数字由 tiny_resnet 分类
+    backend: tongji_yolov8
+    model_path: ../../../models/tongji_yolov8/yolov8.xml
+    classifier: ../../../models/tongji_yolov8/tiny_resnet.onnx
+    classifier_confidence: 0.8   # 同济 min_confidence
+    device: CPU
+    confidence: 0.7
+    nms: 0.3
+  tongji_yolo11:                 # 640 输入，38 类（颜色 x 兵种 x 大小板）
+    backend: tongji_yolo11
+    model_path: ../../../models/tongji_yolo11/yolo11.xml
+    device: CPU
+    confidence: 0.7
+    nms: 0.3
+  light_pair:
+    backend: light_pair
+    model_path: ""
+    device: CPU
+    confidence: 0.7
+    nms: 0.3
+
+# 采集、显示、录像。无相机时用 --synthetic 或 --video PATH 覆盖输入源。
+live:
+  source: hik                    # hik / usb / video / synthetic
+  camera_serial: auto            # 多相机时填写指定序列号
+  usb_index: 0
+  video_path: ""
+  exposure_us: 3000.0            # 微秒；按当前相机图像调整
+  gain: 0.0
+  fps: 0.0                       # 0=视频自带帧率；不设置工业相机硬件 FPS
+  frames: 0                      # 0=持续运行
+  headless: false
+  record: false
+  record_fps: 30.0
+  reconnect: true
+  reconnect_timeout_s: 30.0      # 0=持续重试
+  retry_delay_ms: 1000
+  model_cache_size: 2            # 0..4 个非当前模型；内存紧张可设 0
+  output: ""                     # 空=每次创建独立会话目录
+
+# 灯条基线 / 像素关联。模型各自的置信度和 NMS 在上面的 yolo_models 中。
+color_threshold: 80
+track_timeout_s: 0.2
+association_gate_px: 100.0
+track_confirm_frames: 3
+track_label_confirm_frames: 3
+association_ambiguity_px: 12.0
+publish_debug_image: true
+
+# 标定数据引用。尚无实测内参，保持关闭；不要使用别队内参。
+calibration_path: ""
+geometry_path: ""                # 填好 calibration_path 后改为 geometry.yaml（大小板尺寸与各兵种板型）；与下方固定尺寸互斥
+plate_width_m: 0.0
+plate_height_m: 0.0
+pose_label: -2
+max_reprojection_error_px: 4.0
+
+# 空间跟踪、选板、开火判据与云台串口。详见 docs/DEVELOPMENT.md 第 4 节。
+# 外参、弹速、延迟必须实测；默认关闭，不复制别队参数。
+aim:
+  enabled: false
+  origin: gimbal_centered          # stationary=台架；gimbal_centered=同济做法，原点随云台移动，底盘平移由目标速度吸收
+  reference_frame: aim_reference   # 重力对齐，z 向上；与 IMU 四元数的参考系一致
+  camera_frame: camera_optical_frame
+  imu_frame: gimbal
+  # host_receive 不给瞄准结果；host_compensated=主机收帧时间减 camera_latency_s；
+  # exposure_synchronized 仅在真实曝光同步后使用；simulation 只用于合成检查
+  timestamp_source: host_receive
+  camera_latency_s: 0.0            # 曝光到主机收帧的实测延迟，host_compensated 时必填
+  command_rate_hz: 500.0           # 命令线程频率（预测、选板、开火、串口发送）
+  publish_rate_hz: 50.0            # /aim/solution 与 /auto_aim/target 发布频率
+  publish_gimbal_io: true          # 串口模式发布 gimbal/imu、gimbal/state、gimbal/command，供 rosbag 录制回放与标定
+
+  extrinsics:                      # 手眼标定；枪管轴为 IMU +x
+    camera_to_gimbal_q_xyzw: []    # 相机 optical -> 云台/IMU 的单位四元数
+    camera_in_gimbal_m: []         # 相机原点在云台/IMU 系中的 xyz
+    muzzle_in_gimbal_m: []         # 枪口原点在云台/IMU 系中的 xyz
+
+  gimbal_link:                     # 云台 C 板 USB 虚拟串口
+    imu_source: serial             # serial=云台串口四元数；topic=/gimbal/imu（不发命令）
+    protocol: cboard               # cboard=本队云台固件 sentry_gimbol_new（0x53/0x50）；sp=同济 SP 协议
+    serial_port: /dev/ttyACM0      # 装了 udev 规则后用 /dev/bof_gimbal（match.yaml 已改）
+    serial_baud: 115200            # USB CDC 不看波特率
+    pitch_up_positive: false       # 仅 sp 协议使用；cboard 的方向由固件决定
+    use_bullet_speed: false        # 固件目前固定发 22 m/s，改成真实弹速后再开
+    use_enemy_color: false         # true=检测颜色跟随固件 enemy_color；裁判系统未连时固件会报蓝方，确认后再开
+
+  # label: 0 哨兵 1 英雄 2 工程 3/4/5 步兵 6 前哨站 7 基地。半径是初值，车辆半径由 EKF 估计。
+  # 前哨站 0.2765 m 为两个开源一致的值，需按 2027 场地图纸/实测核对。
+  targets:
+    0: {kind: vehicle, plates: 4, radius_m: 0.2}
+    1: {kind: vehicle, plates: 4, radius_m: 0.2}
+    2: {kind: vehicle, plates: 4, radius_m: 0.2}
+    3: {kind: vehicle, plates: 4, radius_m: 0.2}
+    4: {kind: vehicle, plates: 4, radius_m: 0.2}
+    5: {kind: vehicle, plates: 4, radius_m: 0.2}
+    6: {kind: outpost, plates: 3, radius_m: 0.2765}
+
+  selection:                       # 无决策时的目标排序，越靠前越优先
+    priority: [1, 3, 4, 5, 0, 2, 6, 7]
+    switch_frames: 5               # 更优目标需连续出现的帧数
+
+  aimer:                           # 弹道与选板（同济 Aimer）
+    muzzle_speed_mps: 0.0          # 实测值；串口弹速在 10~40 m/s 内时替代该值
+    gravity_mps2: 9.80665
+    control_delay_s: 0.0           # 发令到出膛的实测延迟，不含观测年龄与飞行时间
+    high_speed_threshold_radps: 0.0  # >0 时，|角速度| 超过它改用 high_speed_control_delay_s
+    high_speed_control_delay_s: 0.0
+    yaw_offset_deg: 0.0            # 枪管相对 IMU 的实测偏置
+    pitch_offset_deg: 0.0
+    max_prediction_s: 1.5
+    spin_threshold_radps: 2.0      # 低于它在可射角内锁板；高于它用来板/去板窗口
+    max_facing_angle_rad: 1.0
+    coming_angle_deg: 60.0
+    leaving_angle_deg: 20.0
+
+  outpost:                         # 前哨站（RPS 方向投票）
+    spin: auto                     # auto=投票后钉定转速；stopped=始终按静止。决策 outpost_stopped 可在比赛中切换
+    speed_radps: 2.513274          # 规则 0.8π rad/s；0=只钉方向、转速由 EKF 估计
+    timeout_s: 1.0                 # 暂失保留时长，按转速预测
+    vote_samples: 30
+    vote_interval: 3
+    vote_stable_radps: 0.6         # 投票窗内估计角速度小于它算静止
+    vote_jump_rad: 0.4
+    min_plate_hits: 3              # 该板被观测几次后才允许打（高度差已估计）
+    coming_angle_deg: 70.0
+    leaving_angle_deg: 30.0
+
+  shooter:                         # 开火（同济 Shooter + RPS 板尺寸容差）
+    auto_fire: false
+    half_width_m: 0.06             # 允许误差按半块板换算成角度
+    half_height_m: 0.05
+    min_tolerance_rad: 0.005
+    max_tolerance_rad: 0.087
+
+  decision:                        # 与决策/导航的接口，默认断开：自瞄独立运行，互不影响
+    enabled: false                 # true 才订阅 /sentry/aim_directive、发布 /auto_aim/target
+    require_directive: false       # true=没有新鲜决策消息时不控云台、不开火（需 enabled）
+    timeout_s: 0.5
+
+  tracking:                        # EKF 与数据关联
+    timeout_s: 0.2
+    imu_gap_s: 0.05
+    sync_wait_s: 0.08
+    confirm_frames: 5
+    position_gate_m: 0.5
+    yaw_gate_rad: 0.8
+    ambiguity_margin: 0.15
+    acceleration_variance: 20.0
+    angular_acceleration_variance: 50.0
+    position_variance: 0.01
+    yaw_variance: 0.04
+    shape_variance: 0.0001
+    initial_variance: 1.0
+    min_radius_m: 0.01
+    max_radius_m: 1.0
+    max_height_difference_m: 0.5

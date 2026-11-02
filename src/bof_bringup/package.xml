@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>bof_bringup</name><version>0.1.0</version>
+  <description>Central configuration and launch for BOF vision.</description>
+  <maintainer email="maintainer@example.com">BOF team</maintainer>
+  <license>MIT</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <exec_depend>bof_vision</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>ament_index_python</exec_depend>
+  <export><build_type>ament_cmake</build_type></export>
+</package>

@@ -1,0 +1,62 @@
+BOF_vision_27 构建方式（简化版）
+项目路径：/home/lmy/BOF_vision_27        更新：2026-11-02
+
+只有 ROS 2 Jazzy + colcon 一种构建入口。
+三个包：bof_interfaces -> bof_vision -> bof_bringup。生成目录：根目录 build/、install/、log/。
+
+一、依赖（Ubuntu 24.04 + ROS 2 Jazzy，新机器装一次）
+  sudo apt install python3-colcon-common-extensions libopencv-dev libeigen3-dev libyaml-cpp-dev \
+    ros-jazzy-cv-bridge ros-jazzy-diagnostic-msgs ros-jazzy-rosidl-default-generators \
+    ros-jazzy-ament-cmake-gtest ros-jazzy-launch-ros ros-jazzy-rclpy ros-jazzy-rosbag2-cpp \
+    ros-jazzy-rosbag2-storage-mcap ros-jazzy-rqt-image-view python3-yaml
+  实车另需：OpenVINO 2024.6（/opt/intel/openvino_2024.6.0）、海康 MVS SDK（如 /opt/MVS）。
+
+二、三种编译
+  1) 无设备演示（不含神经网络和海康相机）：
+       cd ~/BOF_vision_27
+       bash scripts/build.sh
+       source scripts/env.sh
+       bash scripts/run_live.sh --synthetic --yolo light_pair
+
+  2) 实车（神经网络检测 + 海康相机 + 自瞄）：
+       bash scripts/build.sh \
+         -DBOF_WITH_OPENVINO=ON -DOpenVINO_DIR=/opt/intel/openvino_2024.6.0/runtime/cmake \
+         -DBOF_WITH_MVS=ON -DMVS_ROOT=/opt/MVS
+     本开发机的 MVS_ROOT 是 /home/lmy/桌面/auto_aim_rps26/src/rm_auto_aim/armor_detector/hikSDK。
+
+  3) 带单测：在 2) 后面加 -DBUILD_TESTING=ON，然后
+       bash scripts/dev/test.sh
+
+  注意：
+  - build.sh 每次都把没写的后端设为 OFF，所以实车版每次都要带全参数。
+  - 关掉 MVS 或 BOF_BUILD_LIVE 时，之前编出的 hik_camera_node / bof_live 会被删除，
+    不会残留旧二进制（核心库是静态链接，旧二进制里是旧代码）。
+  - 不带 MVS 时没有 hik_camera_node，start_match.sh 会直接报错退出（退出码 78），不会反复重启。
+  - 编译后确认：ros2 pkg executables bof_vision 应列出 hik_camera_node、pipeline_node、aim_node。
+
+三、模型权重（不进源码包，新机器导入一次）
+  bash scripts/dev/import_model.sh /path/to/sp_vision_25              同济 yolov5 / yolov8 / yolo11
+  bash scripts/dev/import_shenzhen_models.sh /path/to/rmcs_auto_aim_v2 深圳 0526 / 0708
+
+四、运行
+  调试：ros2 launch bof_bringup vision.launch.py config:="$PWD/src/bof_bringup/config/sentry.yaml" source:=hik aim:=true
+  看画面：ros2 run rqt_image_view rqt_image_view /aim/debug_image
+  录包：bash scripts/record.sh aim|images|handeye|latency [名字]      存到 artifacts/bags/
+  比赛：bash scripts/system/install_autostart.sh   车上运行一次（udev 固定串口名、systemd 自启）
+        bash scripts/start_match.sh                手动启动（BOF_CPUS=2-5 可绑核）
+        systemctl --user start|stop bof-vision     服务方式启动/停止
+
+五、原生 ROS 命令也可以（会沿用上次的 CMake 开关）
+  source /opt/ros/jazzy/setup.bash
+  colcon build --symlink-install --packages-up-to bof_bringup --cmake-args -DBUILD_TESTING=OFF
+  source install/setup.bash
+
+六、配置
+  日常调参只改 src/bof_bringup/config/sentry.yaml；比赛差异在 match.yaml；板尺寸在 geometry.yaml。
+  改 C++ 后重新构建；改 YAML 后重启。移动项目目录后要重新构建。
+
+七、文档
+  docs/USAGE.md            使用说明（编译、启动、调参、标定、排查）
+  docs/TEST_PLAN.md        实车测试方案（分阶段步骤、通过标准、安全规则）
+  docs/DEVELOPMENT.md      开发交接（代码结构、算法、云台协议、验证记录）
+  docs/FIRMWARE_CHANGES.md 给电控的固件修改建议（指令超时、CRC、弹速）

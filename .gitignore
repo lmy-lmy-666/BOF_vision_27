@@ -1,0 +1,15 @@
+artifacts/
+data/
+*.db3
+*.mcap
+__pycache__/
+MvSdkLog/
+models/tongji_yolov5/
+models/tongji_yolov8/
+models/tongji_yolo11/
+models/shenzhen/
+
+/build/
+/install/
+/log/
+/core

@@ -1,0 +1,8 @@
+# 比赛配置：继承 sentry.yaml，只关掉调试输出。调参仍改 sentry.yaml，这里只放比赛与调试的差异。
+schema_version: 1
+extends: sentry.yaml
+publish_debug_image: false       # 不画检测调试图
+aim:
+  debug_image_rate_hz: 0.0       # 不画自瞄叠加图
+  gimbal_link:
+    serial_port: /dev/bof_gimbal # udev 固定名，见 scripts/system/99-bof-vision.rules
