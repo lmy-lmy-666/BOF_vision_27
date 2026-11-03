@@ -1,15 +1,24 @@
-artifacts/
-data/
+# Local recordings, datasets and generated evidence (not runtime dependencies).
+/src/data/
 *.db3
 *.mcap
 __pycache__/
+*.py[cod]
 MvSdkLog/
-models/tongji_yolov5/
-models/tongji_yolov8/
-models/tongji_yolo11/
-models/shenzhen/
 
+# Rebuild these after cloning; never copy a symlink-install workspace.
 /build/
 /install/
 /log/
 /core
+
+# Editor and machine-local settings.
+/.idea/
+/.vscode/
+/.venv/
+/.env
+/.env.*
+!.env.example
+*.swp
+*~
+.DS_Store

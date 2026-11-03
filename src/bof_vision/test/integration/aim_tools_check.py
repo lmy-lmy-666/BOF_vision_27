@@ -1,6 +1,6 @@
 """Synthetic rosbags with known answers, then bof_handeye / bof_aim_replay checked against them.
 
-Usage (after source scripts/env.sh): python3 aim_tools_check.py OUTPUT_DIR src/bof_bringup/config/sentry.yaml
+Usage (after source src/scripts/env.sh): python3 aim_tools_check.py OUTPUT_DIR src/bof_bringup/config/sentry.yaml
 Writes OUTPUT_DIR/{outpost,static,handeye}_bag, camera.yaml, truth.yaml and the tool outputs.
 Simulation only: proves the tools recover known parameters, not hardware accuracy.
 """

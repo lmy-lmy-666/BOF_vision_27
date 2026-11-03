@@ -1,0 +1,17 @@
+name: Repository completeness
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check tracked files, models and local links
+        run: python3 src/scripts/dev/check_repo.py --require-tracked
+      - name: Verify distributable archive
+        run: |
+          bash src/scripts/dev/package.sh
+          cd build/dist
+          sha256sum -c BOF_vision_27-source.tar.gz.sha256
+          mkdir unpacked
+          tar -xzf BOF_vision_27-source.tar.gz -C unpacked
+          python3 unpacked/src/scripts/dev/check_repo.py

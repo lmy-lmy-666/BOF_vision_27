@@ -1,0 +1,16 @@
+2026-11-02 — host-only safety validation
+No hardware I/O, no firmware flashing.
+PID and hardware dependencies are substitutes. USB wiring is checked statically.
+No Keil/ARM target build available in this environment.
+
+PASS: 40 receiver, latch, timeout, mode and final-stop checks (host substitutes).
+PASS: USB callback/deinit wiring and removal of receive-buffer polling.
+
+
+Modified source hashes:
+Task/Inc/Auto_aim.h: +19 -4; SHA256=c24c888650239bd1bdfed86de98f1e907347caeba31b0789c9afbb59b2cde649
+Task/Src/Auto_aim.c: +139 -36; SHA256=03bb7af19ee905dbe34c02215077981453daea3664f2352909b9a3695e37d545
+Task/Src/ModeControl.c: +11 -2; SHA256=6234f30cd55f357db4f757248f09ab2217bd490185c4a855b82474acea3d1abd
+Task/Src/Shoot.c: +41 -3; SHA256=88bd5ce85809d39b2112b70e7a36206f10c1956a4460516e8bce7418e73e3147
+Task/Src/GimbolControl.c: +27 -7; SHA256=25a5535f94fa4166ddd2ae8d8d546347f7cf8761d32cd6f23e485f9e75136da2
+Src/usbd_cdc_if.c: +7 -0; SHA256=e054f29d25bf6e1d6a3adb00886c8d08e7a270a79a85b07f788d1b5a2e32fc62

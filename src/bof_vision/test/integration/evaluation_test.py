@@ -6,7 +6,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-path = Path(__file__).resolve().parents[4] / 'scripts/dev/evaluate_detections.py'
+path = Path(__file__).resolve().parents[4] / 'src/scripts/dev/evaluate_detections.py'
 spec = importlib.util.spec_from_file_location('evaluation', path)
 evaluation = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(evaluation)

@@ -8,33 +8,33 @@ yolo_name: shenzhen_0526
 yolo_models:
   shenzhen_0526:
     backend: shenzhen_0526
-    model_path: ../../../models/shenzhen/shenzhen-0526.onnx
+    model_path: ../../models/shenzhen/shenzhen-0526.onnx
     device: CPU
     confidence: 0.7
     nms: 0.3
   shenzhen_0708:
     backend: shenzhen_0708
-    model_path: ../../../models/shenzhen/shenzhen-0708.onnx
+    model_path: ../../models/shenzhen/shenzhen-0708.onnx
     device: CPU
     confidence: 0.7
     nms: 0.3
   tongji_yolov5:
     backend: tongji_yolov5
-    model_path: ../../../models/tongji_yolov5/yolov5.xml
+    model_path: ../../models/tongji_yolov5/yolov5.xml
     device: CPU
     confidence: 0.7
     nms: 0.3
   tongji_yolov8:                 # 416 输入，网络只分颜色，数字由 tiny_resnet 分类
     backend: tongji_yolov8
-    model_path: ../../../models/tongji_yolov8/yolov8.xml
-    classifier: ../../../models/tongji_yolov8/tiny_resnet.onnx
+    model_path: ../../models/tongji_yolov8/yolov8.xml
+    classifier: ../../models/tongji_yolov8/tiny_resnet.onnx
     classifier_confidence: 0.8   # 同济 min_confidence
     device: CPU
     confidence: 0.7
     nms: 0.3
   tongji_yolo11:                 # 640 输入，38 类（颜色 x 兵种 x 大小板）
     backend: tongji_yolo11
-    model_path: ../../../models/tongji_yolo11/yolo11.xml
+    model_path: ../../models/tongji_yolo11/yolo11.xml
     device: CPU
     confidence: 0.7
     nms: 0.3

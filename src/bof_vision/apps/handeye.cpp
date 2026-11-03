@@ -18,6 +18,7 @@
 #include <sensor_msgs/msg/imu.hpp>
 #include <yaml-cpp/yaml.h>
 #include <cmath>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 
@@ -76,7 +77,7 @@ template<class T> T decode(const rosbag2_storage::SerializedBagMessage& m) {
 }
 int main(int argc,char** argv) {
   try {
-    std::string bag, calibration, pattern="circles", image_topic="/camera/image_raw", output="handeye.yaml";
+    std::string bag, calibration, pattern="circles", image_topic="/camera/image_raw", output="log/artifacts/handeye.yaml";
     int cols=0, rows=0, min_views=10; double spacing_mm=0, still_dps=1.0, distinct_deg=3.0;
     for(int i=1;i<argc;++i) {
       const std::string a=argv[i]; auto next=[&]{if(i+1>=argc) throw std::invalid_argument("missing value for "+a); return std::string(argv[++i]);};
@@ -87,7 +88,7 @@ int main(int argc,char** argv) {
       else if(a=="--min-views") min_views=std::stoi(next()); else if(a=="--output") output=next();
       else if(a=="--help" || a=="-h") {
         std::cout << "bof_handeye --bag BAG --calibration camera.yaml --pattern circles|chessboard --cols N --rows N --spacing-mm MM\n"
-          "  [--image-topic /camera/image_raw] [--still-deg-per-s 1] [--distinct-deg 3] [--min-views 10] [--output handeye.yaml]\n"
+          "  [--image-topic /camera/image_raw] [--still-deg-per-s 1] [--distinct-deg 3] [--min-views 10] [--output log/artifacts/handeye.yaml]\n"
           "Fix the board, then hold the gimbal still at >=10 yaw/pitch combinations (both axes) while recording\n"
           "  ros2 bag record /camera/image_raw /gimbal/imu\n"
           "cols/rows: inner corners for chessboards, dot centres for circles.\n";
@@ -188,6 +189,8 @@ int main(int argc,char** argv) {
         << YAML::Key << "board_orientation_mean_spread_deg" << YAML::Value << (used.size()>1?angle_sum/(used.size()-1)*180/pi:0)
         << YAML::Key << "deviation_from_ideal_mount_deg" << YAML::Value << mount_deg
         << YAML::Key << "validation_status" << YAML::Value << "consistency_only_requires_aim_check" << YAML::EndMap;
+    const auto output_parent = std::filesystem::path(output).parent_path();
+    if (!output_parent.empty()) std::filesystem::create_directories(output_parent);
     std::ofstream(output) << "# Copy the two transforms into aim.extrinsics. Large spreads mean bad attitude sync or views.\n"
                           << out.c_str() << '\n';
     std::cout << out.c_str() << "\nSaved " << output << "\n";

@@ -1,0 +1,9 @@
+* text=auto
+*.sh text eol=lf
+*.py text eol=lf
+*.yaml text eol=lf
+*.xml text eol=lf
+# Model XML is checksum-pinned; preserve its original line endings byte-for-byte.
+src/models/**/*.xml -text
+*.bin binary
+*.onnx binary

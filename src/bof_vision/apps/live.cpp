@@ -179,7 +179,7 @@ int main(int argc,char** argv) {
     const bool hardware=!camera_serial.empty() || usb>=0;
     const std::string source=!camera_serial.empty() ? "hik" : usb>=0 ? "usb" : synthetic ? "synthetic" : "video";
     const std::string time_domain=hardware ? "host_receive" : "nominal_video";
-    const fs::path output=fs::absolute(output_path.empty() ? (fs::path("artifacts/output")/run_name()).string() : output_path);
+    const fs::path output=fs::absolute(output_path.empty() ? (fs::path("log/artifacts/output")/run_name()).string() : output_path);
     fs::create_directories(output.parent_path());
     if(!fs::create_directory(output)) throw std::runtime_error("output directory already exists: "+output.string());
     bof::save_config(settings,(output/"initial_config.yaml").string());

@@ -225,7 +225,7 @@ void command_lag(const std::vector<Event>& events) {
 }
 int main(int argc,char** argv) {
   try {
-    std::string bag, config_path, output="aim_replay_output", mode="replay"; double lo=0, hi=0.06, step=0.001, rate=500; int label=-1;
+    std::string bag, config_path, output="log/artifacts/aim_replay_output", mode="replay"; double lo=0, hi=0.06, step=0.001, rate=500; int label=-1;
     for(int i=1;i<argc;++i) {
       const std::string a=argv[i]; auto next=[&]{if(i+1>=argc) throw std::invalid_argument("missing value for "+a); return std::string(argv[++i]);};
       if(a=="--bag") bag=next(); else if(a=="--config") config_path=next(); else if(a=="--output") output=next();

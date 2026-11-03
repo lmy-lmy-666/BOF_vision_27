@@ -5,4 +5,4 @@ publish_debug_image: false       # 不画检测调试图
 aim:
   debug_image_rate_hz: 0.0       # 不画自瞄叠加图
   gimbal_link:
-    serial_port: /dev/bof_gimbal # udev 固定名，见 scripts/system/99-bof-vision.rules
+    serial_port: /dev/bof_gimbal # udev 固定名，见 src/scripts/system/99-bof-vision.rules

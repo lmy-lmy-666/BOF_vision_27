@@ -1,6 +1,6 @@
 """End-to-end check: fake gimbal C board (pty, team firmware cboard frames) + synthetic spinning outpost ArmorPoses -> aim_node.
 
-Usage (after source scripts/env.sh): python3 aim_e2e.py OUTPUT_DIR src/bof_bringup/config/sentry.yaml
+Usage (after source src/scripts/env.sh): python3 aim_e2e.py OUTPUT_DIR src/bof_bringup/config/sentry.yaml
 The fake gimbal jumps to each commanded angle; poses are projected through that attitude.
 After 5 s a directive marks the outpost invincible, which must release the target.
 Simulation timestamps only; this is not a hardware or protocol acceptance."""
